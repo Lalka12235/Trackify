@@ -5,8 +5,12 @@ class TrackSchemas(BaseModel):
     title: str
     artist: str
     genre: str
-    user_id: str
     url: AnyUrl
+
+class TrackMinSchemas(BaseModel):
+    title: str
+    artist: str
+    url: str
 
 class UpdateTrackSchemas(BaseModel):
     title:str
@@ -19,6 +23,3 @@ class DeleteTrackSchemas(BaseModel):
     artist:str
     url:str
 
-
-class PlaylistTrackSchemas(BaseModel):
-    pass

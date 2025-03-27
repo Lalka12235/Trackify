@@ -43,7 +43,9 @@ class PlaylistTrackModel(Base):
     __tablename__ = 'playlists-tracks'
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    playlist_id: Mapped[int] = mapped_column(ForeignKey('playlists.id'))
     track_id: Mapped[int] = mapped_column(ForeignKey('tracks.id'))
+    
 
     playlist = relationship('PlaylistModel',back_populates='tracks')
     track = relationship('TrackModel',back_populates='playlists')

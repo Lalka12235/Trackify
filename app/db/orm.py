@@ -1,7 +1,7 @@
 from sqlalchemy import select,insert,update,delete
 from app.db.session import Session
 from app.db.models import UserModel, TrackModel, PlaylistModel, PlaylistTrackModel
-from app.schemas.track import TrackSchemas, PlaylistTrackSchemas, UpdateTrackSchemas,DeleteTrackSchemas
+from app.schemas.track import TrackSchemas, PlaylistTrackSchemas, UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas
 from app.schemas.user import UserSchemas, UserOutSchemas
 from fastapi import HTTPException,status
 
@@ -58,9 +58,9 @@ class ManageTrackOrm:
     #all track artist add
 
     @staticmethod
-    def select_track(track: TrackSchemas):
+    def select_track(track_title: str,track_artist: str, track_url: str):
         with Session() as session:
-            exist_track = select(TrackModel).where(title=track.title,artist=track.artist,url=track.url)
+            exist_track = select(TrackModel).where(title=track_title,artist=track_artist,url=track_url)
 
             if not exist_track:
                 raise HTTPException(
@@ -184,7 +184,7 @@ class ManagePlaylistOrm:
                     detail='Playlist not found'
                 )
             
-            stmt = update(PlaylistModel).where(name=new_title)
+            stmt = update(PlaylistModel).where(name=playlist_title)
             result = session.execute(stmt)
 
             session.commit()
@@ -206,9 +206,82 @@ class ManagePlaylistOrm:
 
             session.commit()
             return {'Update': True,'Detail': result}
-        
-
-class ManagePlaylistTrackOrm:
 
     @staticmethod
+    def add_track_to_playlist(playlist_title: str,track: TrackMinSchemas):
+        with Session() as session:
+            playlist = ManagePlaylistOrm.select_playlist(playlist_title)
+
+            if not playlist:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Playlist not found'
+                )
+            
+            track = ManageTrackOrm.select_track(track.title,track.artist,track.url)
+
+            if not track:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Track not found'
+                )
+            
+            stmt = insert(PlaylistTrackModel).values(playlist_id=playlist.id,track_id=track.id)
+            session.execute(stmt)
+            session.commit()
+
+            return {'message': 'Track added to playlist',}
+
+
     
+    @staticmethod
+    def delete_track_from_playlist(playlist_title: str,track: TrackMinSchemas):
+        with Session() as session:
+            playlist = ManagePlaylistOrm.select_playlist(playlist_title)
+
+            if not playlist:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Playlist not found'
+                )
+            
+            track = ManageTrackOrm.select_track(track.title,track.artist,track.url)
+
+            if not track:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Track not found'
+                )
+            
+            stmt = delete(PlaylistTrackModel).where(
+                PlaylistTrackModel.playlist_id == playlist.id,
+                PlaylistTrackModel.track_id == track.id
+            )
+            session.execute(stmt)
+            session.commit()
+
+            return {'message': 'Track removed from playlist'}
+
+
+
+    @staticmethod
+    def get_all_track_from_playlist(playlist_title: str):
+        with Session() as session:
+            playlist = ManagePlaylistOrm.select_playlist(playlist_title)
+
+            if not playlist:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Playlist not found'
+                )
+            
+            stmt = select(TrackModel).join(PlaylistTrackModel).where(PlaylistTrackModel.playlist_id == playlist.id)
+            tracks = session.execute(stmt).fetchall()
+
+            if not tracks:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Tracks not found'
+                )
+            
+            return {'playlist': playlist_title,'tracks':[track.title for track in tracks]}
