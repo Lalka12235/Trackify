@@ -1,18 +1,18 @@
-Музыкальный трекер
+Music Tracker
 
-Это веб-приложение для управления музыкальными треками и плейлистами. Пользователи могут добавлять треки, создавать плейлисты, добавлять треки в плейлисты, а также хранить заметки и метки для каждого трека.
+This is a web application for managing music tracks and playlists. Users can add tracks, create playlists, add tracks to playlists, and store notes and tags for each track.
 
-Функции:
- • Регистрация и авторизация пользователей.
- • Добавление треков с названием, исполнителем, жанром и ссылкой на внешний источник.
- • Создание и управление плейлистами.
- • Добавление треков в плейлисты.
- • Поиск и фильтрация по трекам и плейлистам.
- • Просмотр своих треков и плейлистов.
+Features:
+• User registration and authorization.
+• Adding tracks with title, artist, genre, and link to external source.
+• Creating and managing playlists.
+• Adding tracks to playlists.
+• Searching and filtering by tracks and playlists.
+• Viewing your tracks and playlists.
 
-Технологии:
- • FastAPI — для создания API.
- • PostgreSQL — для хранения данных.
- • SQLAlchemy — для работы с базой данных.
- • Alembic — для миграций базы данных.
- • Docker — для контейнеризации приложения.
+Technologies:
+• FastAPI — for creating APIs.
+• PostgreSQL — for storing data.
+• SQLAlchemy — for working with the database.
+• Alembic — for database migrations.
+• Docker — for application containerization.
