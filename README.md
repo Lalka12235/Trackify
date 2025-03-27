@@ -1,6 +1,6 @@
 Music Tracker
 
-This is a web application for managing music tracks and playlists. Users can add tracks, create playlists, add tracks to playlists, and store notes and tags for each track.
+This is a web application for managing music tracks and playlists. Users can add tracks, create playlists, add tracks to playlists.
 
 Features:
 • User registration and authorization.
