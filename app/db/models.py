@@ -5,18 +5,18 @@ class Base(DeclarativeBase):
     pass
 
 
-class UserOrm(Base):
+class UserModel(Base):
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str]
     password: Mapped[str]
 
-    tracks: Mapped[list['TrackOrm']] = relationship(back_populates='user')
-    playlists: Mapped[list['PlaylistOrm']] = relationship(back_populates='user')
+    tracks: Mapped[list['TrackModel']] = relationship(back_populates='user')
+    playlists: Mapped[list['PlaylistModel']] = relationship(back_populates='user')
 
 
-class TrackOrm(Base):
+class TrackModel(Base):
     __tablename__ = 'tracks'
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -24,25 +24,26 @@ class TrackOrm(Base):
     artist: Mapped[str]
     genre: Mapped[str]
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    url: Mapped[str]
 
-    user: Mapped['UserOrm'] = relationship(back_populates='tracks')
-    playlist = relationship('PlaylistTrackOrm',back_populates='track')
+    user: Mapped['UserModel'] = relationship(back_populates='tracks')
+    playlist = relationship('PlaylistTrackModel',back_populates='track')
 
-class PlaylistOrm(Base):
+class PlaylistModel(Base):
     __tablename__ = 'playlists'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
 
-    user: Mapped['UserOrm'] = relationship(back_populates='playlists')
-    tracks = relationship('PlaylistRrackOrm', back_populates='playlist')
+    user: Mapped['UserModel'] = relationship(back_populates='playlists')
+    tracks = relationship('PlaylistTrackModel', back_populates='playlist')
 
-class PlaylistTrackOrm(Base):
+class PlaylistTrackModel(Base):
     __tablename__ = 'playlists-tracks'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     track_id: Mapped[int] = mapped_column(ForeignKey('tracks.id'))
 
-    playlist = relationship('PlaylistOrm',back_populates='tracks')
-    track = relationship('TrackOrm',back_populates='playlists')
+    playlist = relationship('PlaylistModel',back_populates='tracks')
+    track = relationship('TrackModel',back_populates='playlists')
