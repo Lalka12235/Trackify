@@ -8,8 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(
-    title='Music Tracker',
-    description='API for add/update/delete track and playlist'
+    title='Trackify',
+    description='Trackify is a convenient application for managing your music collection that allows you to add, \
+        update, and delete tracks and playlists. Save your favorite tracks, create personalized playlists, and share them with friends.',
+        version='1.0',
 )
 
 origins = [
