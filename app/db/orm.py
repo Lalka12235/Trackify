@@ -1,27 +1,24 @@
 from sqlalchemy import select,insert,update,delete
 from app.db.session import Session
 from app.db.models import UserModel, TrackModel, PlaylistModel, PlaylistTrackModel
-from app.schemas.track import TrackSchemas,UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas
-from app.schemas.user import UserSchemas, UserOutSchemas
+from app.schemas.track import TrackSchemas,UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas,TrackSearchSchemas, PlaylistSchemas
+from app.schemas.user import UserSchemas
 from fastapi import HTTPException,status
 
 
 class UserOrm:
 
     @staticmethod
-    def select_user(username) -> UserOutSchemas:
+    def select_user(username: str):
         with Session() as session:
             stmt = select(UserModel).where(UserModel.username == username)
-            result = session.execute(stmt)
-            if result:
-                return {'User': 'exist'}
-            else:
-                return {'User': 'Doesnt exist'}
+            user = session.execute(stmt).scalar_one_or_none()
+            return user
 
     @staticmethod
-    def register_user(user: UserSchemas) -> UserOutSchemas:
+    def register_user(username: str,password: str):
         with Session() as session:
-            users = UserOrm.select_user(user.username)
+            users = UserOrm.select_user(username)
 
             if users:
                 raise HTTPException(
@@ -29,14 +26,14 @@ class UserOrm:
                     detail='Users is exist'
                 )
             
-            stmt = insert(UserOrm).values(username=user.username,password=user.password)
-            result = session.execute(stmt)
+            stmt = insert(UserModel).values(username=username,password=password)
+            result = session.execute(stmt).scalar()
 
             session.commit()
-            return {'Create': True}
+            return {'message': 'User create'}
         
     @staticmethod
-    def delete_user(user: UserSchemas) -> any:
+    def delete_user(user: UserSchemas):
         with Session() as session:
             users = UserOrm.select_user(user.username)
 
@@ -46,11 +43,11 @@ class UserOrm:
                     detail='Users isn"t exist'
                 )
             
-            stmt = delete(UserModel).where(username=user.username,password=user.password)
+            stmt = delete(UserModel).where(UserModel.username==user.username,UserModel.password==user.password)
             result = session.execute(stmt)
 
             session.commit()
-            return {'Delete': True}
+            return 
         
 
 class ManageTrackOrm:
@@ -78,22 +75,25 @@ class ManageTrackOrm:
             return {'message': 'Get all track artist','detail': result}
 
     @staticmethod
-    def select_track(track_title: str,track_artist: str, track_url: str):
+    def select_track(track_title: str,track_artist: str):
         with Session() as session:
-            exist_track = select(TrackModel).where(title=track_title,artist=track_artist,url=track_url)
-
-            if not exist_track:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail='Track not found'
+            stmt = select(TrackModel).where(
+                TrackModel.title==track_title,
+                TrackModel.artist==track_artist,
                 )
             
-            return {'Select': True,'Track': exist_track}
+            exist_track = session.execute(stmt).scalar_one_or_none()
+
+            return exist_track
+            
+            
         
     @staticmethod
-    def create_track(track: TrackSchemas):
+    def create_track(username: str,track: TrackSchemas):
         with Session() as session:
-            exist_track = select(TrackModel).where(title=track.title,artist=track.artist,url=track.url)
+            user = UserOrm.select_user(username)
+            exist_track = ManageTrackOrm.select_track(track.title,track.artist)
+
 
             if exist_track:
                 raise HTTPException(
@@ -105,20 +105,20 @@ class ManageTrackOrm:
                 title=track.title,
                 artist=track.artist,
                 genre=track.genre,
+                user_id=user.id,
+                url=track.url
             )
 
-            stmt = insert(TrackModel).values(title=track.title,artist=track.artist,genre=track.genre,url=track.url)
-            result = session.execute(stmt)
-
+            session.add(new_track)
             session.commit()
-            return {'Create': True,'Track': result}
+            return {'Create': True,'detail': {'title': track.title,'artist':track.artist,'url':track.url} }
         
     
     @staticmethod
-    def update_track(track: UpdateTrackSchemas):
+    def update_track(track: TrackSearchSchemas, upd_track: UpdateTrackSchemas):
         with Session() as session:
-            exist_track = select(TrackModel).where(title=track.title,artist=track.artist,url=track.url)
-
+            exist_track = ManageTrackOrm.select_track(track.title,track.artist)
+  
             if not exist_track:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -126,9 +126,12 @@ class ManageTrackOrm:
                 )
             
             stmt = update(TrackModel).where(
-                title=track.title,
-                artist=track.artist,
-                #genre
+                TrackModel.title==track.title,
+                TrackModel.artist==track.artist,
+            ).values(
+                title=upd_track.title,
+                artist=upd_track.artist,
+                genre=upd_track.genre
             )
             result = session.execute(stmt)
 
@@ -138,7 +141,12 @@ class ManageTrackOrm:
     @staticmethod
     def delete_track(track: DeleteTrackSchemas):
         with Session() as session:
-            exist_track = select(TrackModel).where(title=track.title,artist=track.artist,url=track.url)
+            stmt1 = select(TrackModel).where(
+                TrackModel.title==track.title,
+                TrackModel.artist==track.artist,
+                )
+            
+            exist_track = session.execute(stmt1).scalar_one_or_none()
 
             if not exist_track:
                 raise HTTPException(
@@ -147,12 +155,12 @@ class ManageTrackOrm:
                 )
             
             stmt = delete(TrackModel).where(
-                title=track.title,
-                artist=track.artist,
-                url=track.url
+                TrackModel.title==track.title,
+                TrackModel.artist==track.artist,
             )
 
             result = session.execute(stmt)
+            session.commit()
 
             return {'Delete': True, 'Track': result}
         
@@ -162,36 +170,27 @@ class ManagePlaylistOrm:
     @staticmethod
     def select_playlist(playlist_title: str):
         with Session() as session:
-            stmt = select(PlaylistModel).where(name=playlist_title)
-            result = session.execute(stmt)
-
-            if not result:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail='Playlist doesnt exist'
-                )
-            return {'Playlist': result}
+            stmt = select(PlaylistModel).where(PlaylistModel.name==playlist_title)
+            result = session.execute(stmt).scalar_one_or_none()
+            return result
 
     @staticmethod
-    def create_playlist(playlist_title: str):
+    def create_playlist(username: str,playlist_title: str):
         with Session() as session:
-            try:
-                playlists = ManagePlaylistOrm.select_playlist(playlist_title)
-                if playlists:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail='Playlist is exist'
-                    )
-                stmt = insert(PlaylistModel).values(name=playlist_title)
-                result = session.execute(stmt)
+            playlists = ManagePlaylistOrm.select_playlist(playlist_title)
+            user = UserOrm.select_user(username)
 
-                session.commit()
-                return {'Playlist': True,'Detail': result}
-            except Exception as e:
+            if playlists:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail='Something wrong'
+                    detail='Playlist is exist'
                 )
+
+            stmt = insert(PlaylistModel).values(name=playlist_title,user_id=user.id)
+            result = session.execute(stmt)
+            session.commit()
+
+            return {'Playlist': True,'Detail': result}
             
     @staticmethod
     def update_playlist(playlist_title: str, new_title: str):
@@ -204,7 +203,7 @@ class ManagePlaylistOrm:
                     detail='Playlist not found'
                 )
             
-            stmt = update(PlaylistModel).where(name=new_title)
+            stmt = update(PlaylistModel).values(name=new_title).where(PlaylistModel.name==playlist_title)
             result = session.execute(stmt)
 
             session.commit()
@@ -221,14 +220,14 @@ class ManagePlaylistOrm:
                     detail='Playlist not found'
                 )
             
-            stmt = delete(PlaylistModel).where(name=playlist_title)
+            stmt = delete(PlaylistModel).where(PlaylistModel.name==playlist_title)
             result = session.execute(stmt)
 
             session.commit()
             return {'Update': True,'Detail': result}
 
     @staticmethod
-    def add_track_to_playlist(playlist_title: str,track: TrackMinSchemas):
+    def add_track_to_playlist(playlist_title: str,track: TrackSearchSchemas):
         with Session() as session:
             playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
@@ -238,7 +237,7 @@ class ManagePlaylistOrm:
                     detail='Playlist not found'
                 )
             
-            track = ManageTrackOrm.select_track(track.title,track.artist,track.url)
+            track = ManageTrackOrm.select_track(track.title,track.artist)
 
             if not track:
                 raise HTTPException(
@@ -255,7 +254,7 @@ class ManagePlaylistOrm:
 
     
     @staticmethod
-    def delete_track_from_playlist(playlist_title: str,track: TrackMinSchemas):
+    def delete_track_from_playlist(playlist_title: str,track: TrackSearchSchemas):
         with Session() as session:
             playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
@@ -265,7 +264,7 @@ class ManagePlaylistOrm:
                     detail='Playlist not found'
                 )
             
-            track = ManageTrackOrm.select_track(track.title,track.artist,track.url)
+            track = ManageTrackOrm.select_track(track.title,track.artist)
 
             if not track:
                 raise HTTPException(
@@ -296,7 +295,7 @@ class ManagePlaylistOrm:
                 )
             
             stmt = select(TrackModel).join(PlaylistTrackModel).where(PlaylistTrackModel.playlist_id == playlist.id)
-            tracks = session.execute(stmt).fetchall()
+            tracks = session.execute(stmt).scalars().all()
 
             if not tracks:
                 raise HTTPException(
@@ -304,4 +303,4 @@ class ManagePlaylistOrm:
                     detail='Tracks not found'
                 )
             
-            return {'playlist': playlist_title,'tracks':[track.title for track in tracks]}
+            return {'playlist': playlist_title, 'tracks': tracks}

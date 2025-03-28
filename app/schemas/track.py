@@ -1,11 +1,11 @@
-from pydantic import BaseModel, AnyUrl
+from pydantic import BaseModel
 
 
 class TrackSchemas(BaseModel):
     title: str
     artist: str
     genre: str
-    url: AnyUrl
+    url: str
 
 class TrackMinSchemas(BaseModel):
     title: str
@@ -13,13 +13,19 @@ class TrackMinSchemas(BaseModel):
     url: str
 
 class UpdateTrackSchemas(BaseModel):
-    title:str
-    artist:str
-    genre:str
-    url:str
+    title:str 
+    artist:str 
+    genre:str  
 
 class DeleteTrackSchemas(BaseModel):
     title:str
     artist:str
-    url:str
 
+
+class TrackSearchSchemas(BaseModel):
+    title: str
+    artist: str
+
+class PlaylistSchemas(BaseModel):
+    title: str
+    user_id: int

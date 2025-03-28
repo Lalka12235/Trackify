@@ -27,7 +27,7 @@ class TrackModel(Base):
     url: Mapped[str]
 
     user: Mapped['UserModel'] = relationship(back_populates='tracks')
-    playlist = relationship('PlaylistTrackModel',back_populates='track')
+    playlists: Mapped[list['PlaylistTrackModel']]= relationship(back_populates='track')
 
 class PlaylistModel(Base):
     __tablename__ = 'playlists'
@@ -37,8 +37,7 @@ class PlaylistModel(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
 
     user: Mapped['UserModel'] = relationship(back_populates='playlists')
-    tracks = relationship('PlaylistTrackModel', back_populates='playlist')
-
+    tracks: Mapped[list['PlaylistTrackModel']] = relationship(back_populates='playlist')
 class PlaylistTrackModel(Base):
     __tablename__ = 'playlists-tracks'
 
@@ -47,5 +46,5 @@ class PlaylistTrackModel(Base):
     track_id: Mapped[int] = mapped_column(ForeignKey('tracks.id'))
     
 
-    playlist = relationship('PlaylistModel',back_populates='tracks')
-    track = relationship('TrackModel',back_populates='playlists')
+    playlist: Mapped['PlaylistModel'] = relationship(back_populates='tracks')
+    track: Mapped['TrackModel'] = relationship(back_populates='playlists')

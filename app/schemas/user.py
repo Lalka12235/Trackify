@@ -5,4 +5,5 @@ class UserSchemas(BaseModel):
     password: str
 
 class UserOutSchemas(BaseModel):
+    id: int
     username:str
