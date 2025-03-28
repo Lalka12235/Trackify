@@ -10,7 +10,7 @@ track = APIRouter(
 )
 
 @track.get('/api/v1/track/choose-track',)
-async def get_one_track(username: str,track_title: str,track_artist: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
+async def get_one_track(username: str,track_title: str,track_artist: str):
     track = ManageTrackOrm.select_track(track_title,track_artist)
 
     if not track:

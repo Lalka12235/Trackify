@@ -8,7 +8,7 @@ playlist = APIRouter(
 )
 
 @playlist.get('/api/v1/playlist/choose-playlist')
-async def get_playlist(playlist_title: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
+async def get_playlist(playlist_title: str):
     playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
     if not playlist:
