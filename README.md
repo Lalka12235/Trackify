@@ -1,6 +1,6 @@
 Music Tracker
 
-This is a web application for managing music tracks and playlists. Users can add tracks, create playlists, add tracks to playlists.
+Trackify is your personal music collection where every track and playlist has its place. Easily add, update and share music with friends. Manage your music world wherever you are.
 
 Features:
 • User registration and authorization.
