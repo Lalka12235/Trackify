@@ -1,7 +1,7 @@
 #Игнорировать .env
 .env
 
-# Игнорировать кэш Python
+#Игнорировать кэш Python
 __pycache__/
 */__pycache__/
 */*/__pycache__/
