@@ -1,0 +1,35 @@
+ersion: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-for-api
+    env_file:
+      - .env 
+    environment:
+      - POSTGRES_USER=${DB_USER}  
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    networks:
+      - netapi
+    volumes:
+      - postgre_vol:/var/lib/postgresql/data 
+
+  backend:
+    build: /app/  
+    container_name: music-tracker
+    volumes:
+      - ./app:/app
+    networks:
+      - netapi
+    ports:
+      - "8000:8000" 
+    depends_on:
+      - postgres
+
+networks:
+  netapi:
+    driver: bridge
+
+volumes:
+  postgre_vol:
