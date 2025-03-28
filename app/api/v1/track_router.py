@@ -1,15 +1,16 @@
-from fastapi import APIRouter,HTTPException,status
+from fastapi import APIRouter,HTTPException,status,Depends
 from app.db.orm import ManageTrackOrm
 from app.schemas.track import TrackSchemas, DeleteTrackSchemas, UpdateTrackSchemas,TrackSearchSchemas
 from typing import Annotated
 from pydantic import AnyUrl
+from app.auth.auth import get_current_user,check_authorization
 
 track = APIRouter(
     tags=['Track']
 )
 
 @track.get('/api/v1/track/choose-track',)
-async def get_one_track(track_title: str,track_artist: str):
+async def get_one_track(username: str,track_title: str,track_artist: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     track = ManageTrackOrm.select_track(track_title,track_artist)
 
     if not track:
@@ -22,7 +23,7 @@ async def get_one_track(track_title: str,track_artist: str):
 
 
 @track.post('/api/v1/track/upload-track')
-async def upload_track(username: str,track: TrackSchemas):
+async def upload_track(username: str,track: TrackSchemas,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     tracks = ManageTrackOrm.select_track(track.title,track.artist)
 
     if tracks:
@@ -36,7 +37,7 @@ async def upload_track(username: str,track: TrackSchemas):
     return {'message': 'upload track', 'detail': {'title': track.title,'artist':track.artist,'url':track.url}}
 
 @track.patch('/api/v1/track/update-track')
-async def update_track(track: TrackSearchSchemas, upd_track: UpdateTrackSchemas,url: Annotated[AnyUrl, None] = None):
+async def update_track(username: str,track: TrackSearchSchemas, upd_track: UpdateTrackSchemas,url: Annotated[AnyUrl, None] = None,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     track = ManageTrackOrm.select_track(track.title,track.artist)
 
     if not track:
@@ -50,7 +51,7 @@ async def update_track(track: TrackSearchSchemas, upd_track: UpdateTrackSchemas,
     return {'message': 'update track', 'detail': {'title': track.title,'artist':track.artist,'url':track.url}}
 
 @track.delete('/api/v1/track/delete-track')
-async def delete_track(track: DeleteTrackSchemas):
+async def delete_track(username: str,track: DeleteTrackSchemas,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     track = ManageTrackOrm.select_track(track.title,track.artist)
 
     if not track:

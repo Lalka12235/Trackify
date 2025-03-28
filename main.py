@@ -2,8 +2,9 @@ from fastapi import FastAPI
 from app.api.v1.playlist_router import playlist
 from app.api.v1.track_router import track
 from app.api.v1.user_router import user
+from app.auth.auth import auth
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+
 
 
 app = FastAPI(
@@ -30,3 +31,4 @@ app.add_middleware(
 app.include_router(user)
 app.include_router(track)
 app.include_router(playlist)
+app.include_router(auth)

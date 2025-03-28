@@ -1,14 +1,14 @@
-from fastapi import APIRouter,HTTPException,status
-from app.db.orm import UserOrm,ManageTrackOrm,ManagePlaylistOrm
-from app.schemas.track import TrackMinSchemas, TrackSchemas, DeleteTrackSchemas, UpdateTrackSchemas,TrackSearchSchemas, PlaylistSchemas
-from app.schemas.user import UserSchemas
+from fastapi import APIRouter,HTTPException,status,Depends
+from app.db.orm import ManagePlaylistOrm
+from app.schemas.track import TrackSearchSchemas
+from app.auth.auth import get_current_user,check_authorization
 
 playlist = APIRouter(
     tags=['Playlist']
 )
 
 @playlist.get('/api/v1/playlist/choose-playlist')
-async def get_playlist(playlist_title: str):
+async def get_playlist(playlist_title: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
     if not playlist:
@@ -20,7 +20,7 @@ async def get_playlist(playlist_title: str):
     return {'message': 'get playlist','detail': {'title': playlist_title,}}
 
 @playlist.post('/api/v1/playlist/create-playlist',tags=['Playlist'])
-async def create_playlist(username: str,playlist_title: str):
+async def create_playlist(username: str,playlist_title: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
     if playlist:
@@ -34,7 +34,7 @@ async def create_playlist(username: str,playlist_title: str):
     return {'message': 'create playlist','detail': {'title': playlist_title}}
 
 @playlist.patch('/api/v1/playlist/update-playlist',tags=['Playlist'])
-async def update_playlist(playlist_title: str, new_title: str):
+async def update_playlist(playlist_title: str, new_title: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
     if not playlist:
@@ -48,7 +48,7 @@ async def update_playlist(playlist_title: str, new_title: str):
     return {'message': 'update playlist','detail': {'old_title': playlist_title,'new_title': new_title}}
 
 @playlist.delete('/api/v1/playlist/delete-playlist',tags=['Playlist'])
-async def delete_playlist(playlist_title: str):
+async def delete_playlist(playlist_title: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     playlist = ManagePlaylistOrm.select_playlist(playlist_title)
 
     if not playlist:
@@ -63,7 +63,7 @@ async def delete_playlist(playlist_title: str):
 
 
 @playlist.post('/api/v1/playlist/add-track',tags=['Playlist'])
-async def add_track_to_playlist(playlist_title: str,track: TrackSearchSchemas):
+async def add_track_to_playlist(playlist_title: str,track: TrackSearchSchemas,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     playlist = ManagePlaylistOrm.select_playlist(playlist_title)
     result = ManagePlaylistOrm.add_track_to_playlist(playlist_title,track)
 
@@ -71,13 +71,13 @@ async def add_track_to_playlist(playlist_title: str,track: TrackSearchSchemas):
 
 
 @playlist.delete('/api/v1/playlist/delete-track',tags=['Playlist'])
-async def delete_track_from_playlist(playlist_title: str,track: TrackSearchSchemas):
+async def delete_track_from_playlist(playlist_title: str,track: TrackSearchSchemas,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     result = ManagePlaylistOrm.delete_track_from_playlist(playlist_title,track)
 
     return {'message': 'delete track from playlist','detail': {'playlist':playlist_title,'title_track': track.title,'artist_track': track.artist}}
 
 @playlist.get('/api/v1/playlist/all-track',tags=['Playlist'])
-async def get_all_track_from_playlist(playlist_title: str):
+async def get_all_track_from_playlist(playlist_title: str,current_user: str = Depends(get_current_user), _ = Depends(check_authorization)):
     result = ManagePlaylistOrm.get_all_track_from_playlist(playlist_title)
 
 

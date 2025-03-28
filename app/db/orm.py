@@ -4,6 +4,7 @@ from app.db.models import UserModel, TrackModel, PlaylistModel, PlaylistTrackMod
 from app.schemas.track import TrackSchemas,UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas,TrackSearchSchemas, PlaylistSchemas
 from app.schemas.user import UserSchemas
 from fastapi import HTTPException,status
+from app.services.hash import make_hash_pass,verify_pass
 
 
 class UserOrm:
@@ -19,6 +20,7 @@ class UserOrm:
     def register_user(username: str,password: str):
         with Session() as session:
             users = UserOrm.select_user(username)
+            hash_pass = make_hash_pass(password)
 
             if users:
                 raise HTTPException(
@@ -26,7 +28,7 @@ class UserOrm:
                     detail='Users is exist'
                 )
             
-            stmt = insert(UserModel).values(username=username,password=password)
+            stmt = insert(UserModel).values(username=username,password=hash_pass)
             result = session.execute(stmt).scalar()
 
             session.commit()
