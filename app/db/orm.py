@@ -1,7 +1,7 @@
 from sqlalchemy import select,insert,update,delete
 from app.db.session import Session
 from app.db.models import UserModel, TrackModel, PlaylistModel, PlaylistTrackModel
-from app.schemas.track import TrackSchemas, PlaylistTrackSchemas, UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas
+from app.schemas.track import TrackSchemas,UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas
 from app.schemas.user import UserSchemas, UserOutSchemas
 from fastapi import HTTPException,status
 
@@ -56,6 +56,26 @@ class UserOrm:
 class ManageTrackOrm:
 
     #all track artist add
+
+    @staticmethod
+    def get_all_track_artist(track_artist: str):
+        with Session() as session:
+            exist_artist = select(
+                TrackModel.title,
+                TrackModel.artist,
+                TrackModel.genre,
+                TrackModel.url,
+                ).where(TrackModel.artist == track_artist)
+
+            if not exist_artist:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail='Arist not found'
+                )
+            
+            result = session.execute(exist_artist)
+
+            return {'message': 'Get all track artist','detail': result}
 
     @staticmethod
     def select_track(track_title: str,track_artist: str, track_url: str):
@@ -184,7 +204,7 @@ class ManagePlaylistOrm:
                     detail='Playlist not found'
                 )
             
-            stmt = update(PlaylistModel).where(name=playlist_title)
+            stmt = update(PlaylistModel).where(name=new_title)
             result = session.execute(stmt)
 
             session.commit()
