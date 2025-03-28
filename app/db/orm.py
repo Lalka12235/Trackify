@@ -1,10 +1,10 @@
 from sqlalchemy import select,insert,update,delete
 from app.db.session import Session
 from app.db.models import UserModel, TrackModel, PlaylistModel, PlaylistTrackModel
-from app.schemas.track import TrackSchemas,UpdateTrackSchemas,DeleteTrackSchemas, TrackMinSchemas,TrackSearchSchemas, PlaylistSchemas
+from app.schemas.track import TrackSchemas,UpdateTrackSchemas,DeleteTrackSchemas,TrackSearchSchemas
 from app.schemas.user import UserSchemas
 from fastapi import HTTPException,status
-from app.services.hash import make_hash_pass,verify_pass
+from app.services.hash import make_hash_pass
 
 
 class UserOrm:

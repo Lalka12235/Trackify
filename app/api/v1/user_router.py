@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends,HTTPException,status
+from fastapi import APIRouter,Depends
 from app.db.orm import UserOrm
 from app.schemas.user import UserSchemas
 from app.auth.auth import get_current_user,check_authorization

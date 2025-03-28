@@ -25,7 +25,3 @@ class DeleteTrackSchemas(BaseModel):
 class TrackSearchSchemas(BaseModel):
     title: str
     artist: str
-
-class PlaylistSchemas(BaseModel):
-    title: str
-    user_id: int
