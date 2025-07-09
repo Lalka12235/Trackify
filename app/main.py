@@ -4,6 +4,7 @@ from app.api.v1.track_router import track
 from app.api.v1.user_router import user
 from app.auth.auth import auth
 from fastapi.middleware.cors import CORSMiddleware
+from app.middleware.log_middleware import LogMiddleware
 
 
 
@@ -20,6 +21,8 @@ origins = [
     "http://localhost",
     "http://localhost:8080/docs",
 ]
+
+app.add_middleware(LogMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
