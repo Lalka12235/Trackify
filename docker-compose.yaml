@@ -1,35 +1,45 @@
-ersion: '3.8'
-
 services:
   postgres:
     image: postgres:latest
-    container_name: postgres-for-api
+    container_name: postgres-db
     env_file:
-      - .env 
+      - .env
     environment:
       - POSTGRES_USER=${DB_USER}  
       - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
     networks:
       - netapi
     volumes:
       - postgre_vol:/var/lib/postgresql/data 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build: /app/  
+    build:
+      dockerfile: Dockerfile
+      context: .
     container_name: music-tracker
-    volumes:
-      - ./app:/app
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      APP_CONFIG_DB_URL: postgresql+psycopg://user:password@postgres:5432/trackify
     networks:
       - netapi
-    ports:
-      - "8000:8000" 
     depends_on:
       - postgres
+    
+
 
 networks:
   netapi:
-    driver: bridge
 
 volumes:
   postgre_vol:
